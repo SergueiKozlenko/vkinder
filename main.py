@@ -214,7 +214,7 @@ def main():
                                         vk_bot.send_message(event.user_id, 'пользователь уже в списке',
                                                             continue_key)
                                 else:
-                                    vk_bot.send_message(event.user_id, "чтобы добавить в избранное, отправь '+' "
+                                    vk_bot.send_message(event.user_id, "чтобы добавить в черный список, отправь '-' "
                                                                        "\nв ответе на сообщение со ссылкой "
                                                                        "на пользователя")
 

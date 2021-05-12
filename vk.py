@@ -29,7 +29,7 @@ class Vk:
 
     @staticmethod
     def get_top_photos(items, top):
-        """Примет список обьектов фотографий пользователя Vk.
+        """Примет список объектов фотографий пользователя Vk.
             Возвратит топ три фото по количеству лайков и комментариев в формате {'file_name', 'url'}.
             """
         top_3_photos = []
@@ -67,7 +67,7 @@ class Vk:
                 }
 
     def get_cities(self, city_query, country_id):
-        """Примет название искомог города city_query, id страны country_id.
+        """Примет название искомого города city_query, id страны country_id.
         С помощью метода VK API getCities возвратит dict с найденными городами в формате: {'id', 'title'} и
         список списков для клавиатуры бота в формате: ['id-region'] если регион указан и ['title-region'] - если нет.
         """
@@ -148,8 +148,8 @@ class Vk:
         return len(list_users_id), list_users_id
 
     def get_photos(self, owner_id, album_id=None):
-        """Примет ID пользоватееля Vk и ID альбома, по умолчанию album_id='profile'.
-        Возвратит список значений 'items' обьекта response метода VK API photos.get.
+        """Примет ID пользователя Vk и ID альбома, по умолчанию album_id='profile'.
+        Возвратит список значений 'items' объекта response метода VK API photos.get.
         """
         users_photos_url = self.url + 'photos.get'
         users_photos_params = {

@@ -1,7 +1,4 @@
 class User:
-    """ласса User.
-       Примет ID пользователя VK, критерии поиска, максимальное количество загружаемых в чат профилей.
-       """
     STATUS = {0: '— не указано',
               1: '— не женат (не замужем)',
               2: '— встречается',
@@ -32,7 +29,7 @@ class User:
         self.criteria = criteria
 
     def count_not_viewed(self):
-        """Возвратит количество незагруженных в чат профилей пользоватеей в текущем поиске"""
+        """Возвратит количество незагруженных в чат профилей пользователей в текущем поиске"""
         return self.count_to_load - self.count_loaded
 
     def change_sex(self):
@@ -63,8 +60,7 @@ class User:
                f"город: {self.criteria['city_title']}\nстатус: {self.STATUS[self.criteria['status_id']]}"
 
     def clear_black_list_info(self, black_list_user_id):
-        """Удалит пользователя из списка просмотров и закрузки в текущем поиске"""
-        print('clear_black_list_info')
+        """Удалит пользователя из списка просмотров и загрузки в текущем поиске"""
         if black_list_user_id in self.viewed_list:
             self.viewed_list.remove(black_list_user_id)
         if black_list_user_id in self.loaded_list:

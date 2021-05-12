@@ -1,29 +1,32 @@
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from config import DATABASE_URI
 from models import Base, User, UsersSearch, Favorite, BlackList
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 
-engine = create_engine(DATABASE_URI)
+engine = create_engine(DATABASE_URI, pool_pre_ping=True)
 Session = sessionmaker(bind=engine)
 
 
 @contextmanager
 def session_scope():
-    """Обеспечиает область транзакций c серией операций."""
+    """Обеспечивает область транзакций c серией операций."""
     session = Session()
     try:
         yield session
         session.commit()
-    except Exception:
+    except SQLAlchemyError as e:
         session.rollback()
-        raise
+        print(e)
+        pass
     finally:
         session.close()
 
 
 def load_users():
     """Возвращает список id пользователей VK из таблицы users."""
+    results = []
     with session_scope() as s:
         results = s.query(User.id).all()
     users = [value for value, in results]
@@ -51,6 +54,7 @@ def load_viewed_list(user_id):
     """Возвращает список id просмотренных пользователей VK в текущем поиске
     пользователя user_id из таблицы users.
     """
+    results = []
     with session_scope() as s:
         results = s.query(UsersSearch.id).filter(UsersSearch.user_id == user_id).all()
     viewed_list = [value for value, in results]
@@ -59,6 +63,7 @@ def load_viewed_list(user_id):
 
 def load_black_list(user_id):
     """Возвращает список id пользователей VK из таблицы black_list для пользователя user_id."""
+    results = []
     with session_scope() as s:
         results = s.query(BlackList.id).filter(BlackList.user_id == user_id).all()
     black_list = [value for value, in results]
@@ -67,6 +72,7 @@ def load_black_list(user_id):
 
 def load_favorite_list(user_id):
     """Возвращает список id пользователей VK из таблицы favorites для пользователя user_id."""
+    results = []
     with session_scope() as s:
         results = s.query(Favorite.id).filter(Favorite.user_id == user_id).all()
     favorite_list = [value for value, in results]
@@ -74,7 +80,7 @@ def load_favorite_list(user_id):
 
 
 def update_sex(user):
-    """Обновляет значение столбца sex таблицы users для обьекта класса User."""
+    """Обновляет значение столбца sex таблицы users для объекта класса User."""
     with session_scope() as s:
         db_user = s.query(User).filter(User.id == user.id).one()
         db_user.sex = user.criteria['sex']
@@ -82,7 +88,7 @@ def update_sex(user):
 
 
 def update_age(user):
-    """Обновляет значения столбцов age_from, age_to таблицы users для обьекта класса User."""
+    """Обновляет значения столбцов age_from, age_to таблицы users для объекта класса User."""
     with session_scope() as s:
         db_user = s.query(User).filter(User.id == user.id).one()
         db_user.age_from = user.criteria['age_from']
@@ -90,7 +96,7 @@ def update_age(user):
 
 
 def update_city(user):
-    """Обновляет значения столбцов city_id, city_title таблицы users для обьекта класса User."""
+    """Обновляет значения столбцов city_id, city_title таблицы users для объекта класса User."""
     with session_scope() as s:
         db_user = s.query(User).filter(User.id == user.id).one()
         db_user.city_id = user.criteria['city_id']
@@ -98,7 +104,7 @@ def update_city(user):
 
 
 def update_status(user):
-    """Обновляет значения столбцов status_id, status_title таблицы users для обьекта класса User."""
+    """Обновляет значения столбцов status_id, status_title таблицы users для объекта класса User."""
     with session_scope() as s:
         db_user = s.query(User).filter(User.id == user.id).one()
         db_user.status_id = user.criteria['status_id']
@@ -127,7 +133,7 @@ def insert_user(user):
 
 def insert_users_search(user):
     """Добавляет список id просмотренных пользователей VK в текущем поиске
-    обьекта класса User в таблицу users_search.
+    объекта класса User в таблицу users_search.
     """
     list_for_load = [item for item in user.viewed_list if item not in user.loaded_list]
     for viewed_id in list_for_load:
@@ -141,7 +147,7 @@ def insert_users_search(user):
 
 
 def insert_favorite(user, favorite_user_id):
-    """Добавляет id пользователя VK и ID обьекта класса User в таблицу favorites."""
+    """Добавляет id пользователя VK и ID объекта класса User в таблицу favorites."""
     favorite = Favorite(
         id=favorite_user_id,
         user_id=user.id
@@ -151,14 +157,15 @@ def insert_favorite(user, favorite_user_id):
 
 
 def insert_black_user(user, black_list_user_id):
-    """Добавляет id пользователя VK и ID обьекта класса User в таблицу users_search."""
+    """Добавляет id пользователя VK и ID объекта класса User в таблицу users_search."""
     black_list = BlackList(
         id=black_list_user_id,
         user_id=user.id
     )
     with session_scope() as s:
         s.add(black_list)
-        s.query(UsersSearch).filter(UsersSearch.id == black_list_user_id and UsersSearch.user_id == user.id).delete()
+        s.query(UsersSearch).filter(UsersSearch.id == black_list_user_id and
+                                    UsersSearch.user_id == user.id).delete()
 
 
 def empty_users_search(user_id):
@@ -170,9 +177,8 @@ def empty_users_search(user_id):
 
 
 def recreate_database():
-    """ДУдаляе и создает базу данных vkinder."""
+    """Удаляет и создает базу данных vkinder."""
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-
 
 # recreate_database()
